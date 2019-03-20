@@ -1,10 +1,84 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-	<meta charset="UTF-8">
-	<title>Document</title>
+  <meta charset="UTF-8" />
+  <title>Hello World</title>
+  <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
 </head>
 <body>
-	陆倚鹏是傻逼
+  <div id="app"></div>
+  <script type="text/babel">  
+    class App extends React.Component{
+    state = {
+      handMax:6,
+      card:[1,2,3,4,5,6,7,8,9,10],
+      table:[1,2,3,4,5,6,7,8,9,10],
+      hand:[]
+    }
+    componentDidMount = () =>{
+      this.drawCards(4)
+    }
+    startTime = () => {
+      this.drawCards(2)
+    }
+    endTime = () => {
+      this.startTime()
+    }
+    drawCards = (num) => {
+      for(let i=0;i<num;i++){
+        this.drawCard()
+      }
+    }
+    drawCard = () =>{
+      let { handMax,table,hand } = this.state
+      if(table.length===0){
+        console.log('none')
+        return
+      }
+      if(handMax === hand.length){
+        console.log('full')
+        return
+      }
+      hand.push(table.pop())
+      this.setState({
+        table,
+        hand
+      })
+    }
+    useCard = (index)=>{
+      let {hand} = this.state
+      hand.splice(index,1)
+      this.setState({
+        hand
+      })
+    }       
+    render = () => {
+        const {card,table,hand} = this.state
+        return (
+          <div>
+            <div style={{display:'flex',marginBottom:20}}>
+              {
+                hand.map((item,index)=>(
+                  <div
+                  key={index}
+                  style={{border:'1px solid',width:100,height:120,marginRight:20,marginLeft:10}}
+                  onClick={()=>{this.useCard(index)}}
+                  >
+                    {item}
+                  </div>
+                ))
+              }
+            </div>
+            <button onClick={()=>{this.endTime()}}>end</button>
+          </div>
+        )
+      }
+    }
+    ReactDOM.render( <App/>,  
+        document.getElementById('app'),
+    )
+  </script>
 </body>
 </html>
