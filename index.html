@@ -9,53 +9,98 @@
 </head>
 <body>
   <div id="app"></div>
-  <script type="text/babel">  
+  <script type="text/babel">
     class App extends React.Component{
     state = {
       handMax:6,
-      card:[1,2,3,4,5,6,7,8,9,10],
-      table:[1,2,3,4,5,6,7,8,9,10],
-      hand:[]
+      card:[1,2,3,4,5,6],
+      hand:[],
+      table:[],
+      discard:[],
+      currentDiscard:[],
     }
-    componentDidMount = () =>{
+    setStateSync = (state) => {
+      return new Promise(resolve=>{
+        this.setState(state,resolve)
+      })
+    }
+    componentDidMount = async () => {
+      const { card } = this.state
+      await this.setStateSync({
+        table:[...card]
+      })
+      this.shuffle()
       this.drawCards(4)
     }
     startTime = () => {
       this.drawCards(2)
     }
-    endTime = () => {
+    endTime = async () => {
+      const { discard,currentDiscard,table } = this.state    
+      await this.setStateSync({
+        discard:discard.concat(currentDiscard),
+        currentDiscard:[]
+      })
       this.startTime()
+    }
+    resetTable = async () =>{
+      let { table,discard } = this.state
+      console.log(this.state)
+      table = [...discard]
+      discard = []
+      console.log(table)      
+      console.log(discard)      
+      await this.setStateSync({
+        table,
+        discard
+      })
+      this.shuffle()
+    }
+    shuffle = async () => {
+      let { table } = this.state
+      let newTable = []
+      let random = 0
+      while(table.length!=0){
+        random = Math.floor(Math.random()*table.length)
+        newTable.push(table[random])
+        table.splice(random,1)
+      }
+      await this.setStateSync({
+        table:newTable
+      })
     }
     drawCards = (num) => {
       for(let i=0;i<num;i++){
         this.drawCard()
       }
     }
-    drawCard = () =>{
+    drawCard = async () => {
       let { handMax,table,hand } = this.state
       if(table.length===0){
-        console.log('none')
-        return
+        console.log('resetTable')
+        this.resetTable()      
       }
       if(handMax === hand.length){
         console.log('full')
         return
       }
       hand.push(table.pop())
-      this.setState({
+      await this.setStateSync({
         table,
         hand
       })
     }
-    useCard = (index)=>{
-      let {hand} = this.state
+    useCard = async (index) => {
+      let {hand,currentDiscard} = this.state
+      currentDiscard.push(hand[index])
       hand.splice(index,1)
-      this.setState({
-        hand
+      await this.setStateSync({
+        hand,
+        currentDiscard
       })
     }       
     render = () => {
-        const {card,table,hand} = this.state
+        const {card,table,hand,discard,currentDiscard} = this.state
         return (
           <div>
             <div style={{display:'flex',marginBottom:20}}>
@@ -71,6 +116,9 @@
                 ))
               }
             </div>
+            <div>table:{table.map((item,index)=><span key={index}>{item}</span>)}</div>
+            <div>discard:{discard.map((item,index)=><span key={index}>{item}</span>)}</div>
+            <div>currentDiscard:{currentDiscard.map((item,index)=><span key={index}>{item}</span>)}</div>
             <button onClick={()=>{this.endTime()}}>end</button>
           </div>
         )
