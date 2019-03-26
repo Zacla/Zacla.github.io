@@ -13,7 +13,65 @@
     class App extends React.Component{
     state = {
       handMax:6,
-      card:[1,2,3,4,5,6],
+      bhp:20,
+      card:[{
+        id:1,
+        fuc:()=>{
+          this.drawCards(2)
+        }
+      },{
+        id:2,
+        fuc:()=>{
+          this.drawCards(2)
+        }
+      },{
+        id:3,
+        fuc:()=>{
+          this.drawCards(2)
+        }
+      },{
+        id:4,
+        fuc:()=>{
+          this.drawCards(1)
+          this.damage(1)
+        }
+      },{
+        id:5,
+        fuc:()=>{
+          this.drawCards(1)
+          this.damage(1)
+        }
+      },{
+        id:6,
+        fuc:()=>{
+          this.damage(2)
+        }
+      },{
+        id:7,
+        fuc:()=>{
+          this.damage(2)
+        }
+      },{
+        id:8,
+        fuc:()=>{
+          this.damage(2)
+        }
+      },{
+        id:9,
+        fuc:()=>{
+          this.damage(3)
+        }
+      },{
+        id:10,
+        fuc:()=>{
+          this.damage(3)
+        }
+      },{
+        id:11,
+        fuc:()=>{
+          this.damage(3)
+        }
+      }],
       hand:[],
       table:[],
       discard:[],
@@ -29,14 +87,14 @@
       await this.setStateSync({
         table:[...card]
       })
-      this.shuffle()
-      this.drawCards(4)
+      await this.shuffle()
+      await this.drawCards(4)
     }
     startTime = () => {
       this.drawCards(2)
     }
     endTime = async () => {
-      const { discard,currentDiscard,table } = this.state    
+      const { discard,currentDiscard,table } = this.state  
       await this.setStateSync({
         discard:discard.concat(currentDiscard),
         currentDiscard:[]
@@ -45,16 +103,13 @@
     }
     resetTable = async () =>{
       let { table,discard } = this.state
-      console.log(this.state)
       table = [...discard]
       discard = []
-      console.log(table)      
-      console.log(discard)      
       await this.setStateSync({
         table,
         discard
       })
-      this.shuffle()
+      await this.shuffle()
     }
     shuffle = async () => {
       let { table } = this.state
@@ -69,21 +124,26 @@
         table:newTable
       })
     }
-    drawCards = (num) => {
+    drawCards = async (num) => {
       for(let i=0;i<num;i++){
-        this.drawCard()
+        await this.drawCard()
       }
     }
     drawCard = async () => {
-      let { handMax,table,hand } = this.state
-      if(table.length===0){
+      let { handMax,table:oldTable,hand,discard } = this.state
+      if(oldTable.length===0){
+        if(discard.length===0){
+          console.log('empty')
+          return
+        }
         console.log('resetTable')
-        this.resetTable()      
+        await this.resetTable()
       }
       if(handMax === hand.length){
         console.log('full')
         return
       }
+      let { table } = this.state
       hand.push(table.pop())
       await this.setStateSync({
         table,
@@ -93,14 +153,22 @@
     useCard = async (index) => {
       let {hand,currentDiscard} = this.state
       currentDiscard.push(hand[index])
-      hand.splice(index,1)
+      let [card] = hand.splice(index,1)
+      card.fuc()
       await this.setStateSync({
         hand,
         currentDiscard
       })
-    }       
+    }
+    damage = async (num) => {
+      let { bhp } = this.state
+      bhp = bhp > num ? ( bhp - num ) : 0
+      await this.setStateSync({
+        bhp:bhp
+      })
+    }   
     render = () => {
-        const {card,table,hand,discard,currentDiscard} = this.state
+        const {bhp,card,table,hand,discard,currentDiscard} = this.state
         return (
           <div>
             <div style={{display:'flex',marginBottom:20}}>
@@ -111,14 +179,15 @@
                   style={{border:'1px solid',width:100,height:120,marginRight:20,marginLeft:10}}
                   onClick={()=>{this.useCard(index)}}
                   >
-                    {item}
+                    {item.id}
                   </div>
                 ))
               }
             </div>
-            <div>table:{table.map((item,index)=><span key={index}>{item}</span>)}</div>
-            <div>discard:{discard.map((item,index)=><span key={index}>{item}</span>)}</div>
-            <div>currentDiscard:{currentDiscard.map((item,index)=><span key={index}>{item}</span>)}</div>
+            <div>bhp:{bhp}</div>
+            <div>table:{table.map((item,index)=><span key={index}>{item.id}</span>)}</div>
+            <div>discard:{discard.map((item,index)=><span key={index}>{item.id}</span>)}</div>
+            <div>currentDiscard:{currentDiscard.map((item,index)=><span key={index}>{item.id}</span>)}</div>
             <button onClick={()=>{this.endTime()}}>end</button>
           </div>
         )
